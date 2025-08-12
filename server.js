@@ -1,4 +1,3 @@
-
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -13,23 +12,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // --- Config ---
-const PORT = process.env.PORT || 3000;
-// e.g., imgs.tu-dominio.com (without protocol). If empty, will use request host.
-const BASE_HOST = process.env.BASE_HOST || "";
-// Optional bearer token for uploads. If set, clients must send Authorization: Bearer <token>
+const PORT = process.env.PORT || 3000;            // en EasyPanel: PORT=80
+const BASE_HOST = process.env.BASE_HOST || "";    // ej: imgs.geniaw.site
 const AUTH_TOKEN = process.env.AUTH_TOKEN || "";
-// CORS origin (comma-separated list or *)
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
-// Max file size (bytes)
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || String(15 * 1024 * 1024), 10);
-// Allowed MIME types
 const ALLOWED_MIME = (process.env.ALLOWED_MIME || "image/jpeg,image/png,image/webp,image/gif").split(",");
 
-// --- Directories ---
+// --- Dirs ---
 const UPLOAD_DIR = path.join(__dirname, "public", "uploads");
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // --- Middlewares ---
+app.set("trust proxy", true);
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || CORS_ORIGIN === "*") return cb(null, true);
@@ -42,7 +37,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Multer storage ---
+// --- Multer ---
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, UPLOAD_DIR),
   filename: (_, file, cb) => {
@@ -53,11 +48,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE } });
 
-// --- Static files ---
-app.use("/uploads", express.static(UPLOAD_DIR, {
-  maxAge: "365d",
-  immutable: true,
-}));
+// --- Static ---
+app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "365d", immutable: true }));
 
 // --- Auth helper ---
 function requireAuth(req, res, next) {
@@ -68,8 +60,9 @@ function requireAuth(req, res, next) {
   return res.status(401).json({ error: "Unauthorized" });
 }
 
-// --- Health ---
+// --- Health & Root ---
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/", (_req, res) => res.status(200).send("ok"));
 
 // --- Upload ---
 app.post("/upload", requireAuth, upload.single("file"), (req, res) => {
@@ -79,22 +72,18 @@ app.post("/upload", requireAuth, upload.single("file"), (req, res) => {
     return res.status(415).json({ error: `Unsupported media type ${req.file.mimetype}` });
   }
 
-  const proto = "https"; // behind reverse proxy/SSL
+  const proto = "https"; // detrás de proxy/SSL
   const host = BASE_HOST || req.headers["x-forwarded-host"] || req.headers.host || "localhost";
   const filename = req.file.filename;
   const url = `${proto}://${host}/uploads/${filename}`;
 
-  return res.json({
-    url,
-    filename,
-    size: req.file.size,
-    mime: req.file.mimetype,
-  });
+  return res.json({ url, filename, size: req.file.size, mime: req.file.mimetype });
 });
 
 // --- 404 ---
 app.use((req, res) => res.status(404).json({ error: "Not found" }));
 
+// --- Listen ---
 app.listen(PORT, () => {
   console.log(`Uploader listening on :${PORT}`);
 });
