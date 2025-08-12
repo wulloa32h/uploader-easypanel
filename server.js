@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // --- Config ---
-const PORT = process.env.PORT || 3000;            // en EasyPanel: PORT=80
+const PORT = process.env.PORT || 3000;            // en EasyPanel usamos PORT=80
 const BASE_HOST = process.env.BASE_HOST || "";    // ej: imgs.geniaw.site
 const AUTH_TOKEN = process.env.AUTH_TOKEN || "";
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -51,21 +51,17 @@ const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE } });
 // --- Static ---
 app.use("/uploads", express.static(UPLOAD_DIR, { maxAge: "365d", immutable: true }));
 
-// --- Auth helper ---
-function requireAuth(req, res, next) {
-  if (!AUTH_TOKEN) return next();
-  const hdr = req.headers.authorization || "";
-  const token = hdr.startsWith("Bearer ") ? hdr.slice(7) : "";
-  if (token && token === AUTH_TOKEN) return next();
-  return res.status(401).json({ error: "Unauthorized" });
-}
-
-// --- Health & Root ---
+// --- Health & Root (para el health-check del panel) ---
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.get("/", (_req, res) => res.status(200).send("ok"));
 
 // --- Upload ---
-app.post("/upload", requireAuth, upload.single("file"), (req, res) => {
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (AUTH_TOKEN) {
+    const hdr = req.headers.authorization || "";
+    const token = hdr.startsWith("Bearer ") ? hdr.slice(7) : "";
+    if (!token || token !== AUTH_TOKEN) return res.status(401).json({ error: "Unauthorized" });
+  }
   if (!req.file) return res.status(400).json({ error: "No file received. Use field name 'file'." });
   if (!ALLOWED_MIME.includes(req.file.mimetype)) {
     try { fs.unlinkSync(req.file.path); } catch {}
