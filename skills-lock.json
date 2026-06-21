@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "audit": {
+      "source": "AccessLint/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/accesslint/skills/audit/SKILL.md",
+      "computedHash": "967363bdc3d2d46fe2ca1ff14e91dd2525cd41573dc1ceee644d5f91226cd117"
+    },
     "baseline-ui": {
       "source": "ibelick/ui-skills",
       "sourceType": "github",
@@ -49,6 +55,12 @@
       "skillPath": "skills/deploy-to-vercel/SKILL.md",
       "computedHash": "d2b5bcc7c09fdb649129ffc7dd7b647ec1b155736974b974292675afd588cb39"
     },
+    "diff": {
+      "source": "AccessLint/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/accesslint/skills/diff/SKILL.md",
+      "computedHash": "2668b8fc4c6d6bd930e8592029a7b95cee27c4add41f42e641dc6fa73ba2ef12"
+    },
     "fixing-accessibility": {
       "source": "ibelick/ui-skills",
       "sourceType": "github",
@@ -66,6 +78,12 @@
       "sourceType": "github",
       "skillPath": "skills/fixing-motion-performance/SKILL.md",
       "computedHash": "426dcf33f23419643f2aab71e2253e1a5b5684a808fabb8a4ad135e489ed7a0f"
+    },
+    "scan": {
+      "source": "AccessLint/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/accesslint/skills/scan/SKILL.md",
+      "computedHash": "bde5f5cbf2858a40e345275c649e49f52622e3ea4b4b44cfc9577eae75150902"
     },
     "ui-skills-root": {
       "source": "ibelick/ui-skills",
